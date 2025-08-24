@@ -2,6 +2,7 @@ package com.shashankpk.AISkillMatch.controller;
 
 import com.shashankpk.AISkillMatch.config.JwtUtil;
 import com.shashankpk.AISkillMatch.dto.LoginRequest;
+import com.shashankpk.AISkillMatch.dto.LoginResponse;
 import com.shashankpk.AISkillMatch.dto.UserDTO;
 import com.shashankpk.AISkillMatch.model.User;
 import com.shashankpk.AISkillMatch.service.UserService;
@@ -30,11 +31,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         User user = userService.findByEmail(loginRequest.getEmail());
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return ResponseEntity.ok(token);
+        LoginResponse response = new LoginResponse(token, user.getRole().name());
+        return ResponseEntity.ok(response);
     }
 }

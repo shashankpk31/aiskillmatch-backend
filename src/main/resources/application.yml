@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: aiskillmatch-backend
+
+  # Mail Config
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: 9543f38b0d74f5
+    password: 7e0adc8b77e9f6
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  # File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  # Async Configuration
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+      thread-name-prefix: Async-
+
+  # ai:
+  #   api-key: sk-9658fc95c17f49b2a084bdfd142d4fb9
+  #   model: deepseek
+
+  # PostgreSQL Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/skillmatchdb
+    username: postgres
+    password: Shubh@post31
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+      show-sql: true
+    properties:
+      hibernate.jdbc.lob.non_contextual_creation: true
+      hibernate.format_sql: true
+      hibernate.use_sql_comments: true
+      # Removed: hibernate.type_contributors: com.github.pgvector.hibernate.PGVectorTypeContributor
+      hibernate.type.json.format: jsonb  # Explicitly enable JSONB for PostgreSQL
+
+# JWT Configuration
+jwt:
+  secret: your-very-long-random-secret-key-at-least-32-chars
+  expiration: 3600000
+  refreshExpiration: 86400000
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework: INFO
+    com.shashankpk31: DEBUG
+
+# CORS Configuration
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600

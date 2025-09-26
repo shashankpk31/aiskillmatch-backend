@@ -2,7 +2,6 @@ package com.shashankpk31.aiskillmatch_backend.controller;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shashankpk31.aiskillmatch_backend.dto.ApiResponse;
 import com.shashankpk31.aiskillmatch_backend.dto.LoginRequest;
+import com.shashankpk31.aiskillmatch_backend.dto.PasswordResetConfirmRequest;
+import com.shashankpk31.aiskillmatch_backend.dto.PasswordResetRequest;
 import com.shashankpk31.aiskillmatch_backend.dto.RegisterRequest;
 import com.shashankpk31.aiskillmatch_backend.entity.PasswordResetToken;
 import com.shashankpk31.aiskillmatch_backend.entity.UserAuth;
@@ -37,6 +39,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*", allowedHeaders = "*", maxAge = 3600)
 public class AuthController {
 
 	private final AuthenticationManager authenticationManager;
@@ -147,11 +150,11 @@ public class AuthController {
 	}
 
 	@PostMapping("/password-reset-request")
-	public ResponseEntity<?> requestReset(@RequestBody Map<String, String> body) {
-		String email = body.get("email");
+	public ResponseEntity<?> requestReset(@RequestBody PasswordResetRequest body) {
+		String email = body.getEmail();
 		Optional<UserAuth> maybeUser = UserAuthRepository.findByEmail(email);
 		if (maybeUser.isEmpty()) {
-			return ResponseEntity.ok(Map.of("message", "If account exists, a reset email was sent"));
+			return ResponseEntity.ok(new ApiResponse(true, "If account exists, a reset email was sent"));
 		}
 		UserAuth user = maybeUser.get();
 		String token = UUID.randomUUID().toString();
@@ -169,23 +172,23 @@ public class AuthController {
 		String emailText = "Click the link to reset your password (expires in 1 hour):\n\n" + resetLink;
 		emailService.sendSimpleMessage(user.getEmail(), "Password Reset", emailText);
 
-		return ResponseEntity.ok(Map.of("message", "If account exists, a reset email was sent"));
+		return ResponseEntity.ok(new ApiResponse(true, "If account exists, a reset email was sent"));
 	}
 
 	@PostMapping("/password-reset")
-	public ResponseEntity<?> doReset(@RequestBody Map<String, String> body) {
-		String token = body.get("token");
-		String newPassword = body.get("password");
+	public ResponseEntity<?> doReset(@RequestBody PasswordResetConfirmRequest body) {
+		String token = body.getToken();
+		String newPassword = body.getPassword();
 
 		var maybe = tokenRepository.findByToken(token);
 		if (maybe.isEmpty())
-			return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
+			return ResponseEntity.badRequest().body(new ApiResponse(true,  "Invalid token"));
 
 		PasswordResetToken prt = maybe.get();
 		if (prt.getUsed() != null && prt.getUsed())
-			return ResponseEntity.badRequest().body(Map.of("message", "Token already used"));
+			return ResponseEntity.badRequest().body(new ApiResponse(true, "Token already used"));
 		if (prt.getExpiresAt().isBefore(LocalDateTime.now()))
-			return ResponseEntity.badRequest().body(Map.of("message", "Token expired"));
+			return ResponseEntity.badRequest().body(new ApiResponse(true,  "Token expired"));
 
 		UserAuth user = UserAuthRepository.findById(prt.getUserId()).orElseThrow();
 		user.setPassword(passwordEncoder.encode(newPassword));
@@ -197,7 +200,7 @@ public class AuthController {
 
 		emailService.sendSimpleMessage(user.getEmail(), "Password changed",
 				"Your password has been changed successfully.");
-		return ResponseEntity.ok(Map.of("message", "Password changed"));
+		return ResponseEntity.ok(new ApiResponse(true, "Password changed"));
 	}
 
 }

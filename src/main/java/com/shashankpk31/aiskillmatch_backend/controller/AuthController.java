@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shashankpk31.aiskillmatch_backend.dto.ApiResponse;
 import com.shashankpk31.aiskillmatch_backend.dto.LoginRequest;
+import com.shashankpk31.aiskillmatch_backend.dto.LoginResponse;
 import com.shashankpk31.aiskillmatch_backend.dto.PasswordResetConfirmRequest;
 import com.shashankpk31.aiskillmatch_backend.dto.PasswordResetRequest;
 import com.shashankpk31.aiskillmatch_backend.dto.RegisterRequest;
@@ -66,21 +67,21 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody @Valid LoginRequest loginResponse) {
+	public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginResponse) {
 		try {
 			Authentication auth = authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(loginResponse.getUsername(), loginResponse.getPassword()));
 			if (auth == null) {
-				return ResponseEntity.status(401).body(new ApiResponse(false, "Invalid credentials"));
+				return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials"));
 			}
 		} catch (BadCredentialsException ex) {
-			return ResponseEntity.status(401).body(new ApiResponse(false, "Invalid credentials"));
+			return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials"));
 		}
 		// load user details and generate JWT
 		UserDetails userDetails = userDetailsService.loadUserByUsername(loginResponse.getUsername());
 		String token = jwtUtil.generateToken(userDetails.getUsername(),
 				userDetails.getAuthorities().iterator().next().getAuthority());
-		return ResponseEntity.ok(new ApiResponse(true, token));
+		return ResponseEntity.ok(new LoginResponse(true, token));
 	}
 
 	@PostMapping("/register")
